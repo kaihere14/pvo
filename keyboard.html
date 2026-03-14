@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mac Style Keyboard Component</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+    
+    <!-- React & Babel for immediate in-browser component testing -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { 
+            background-color: #f8fafc; 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Smooth scrolling for mobile responsiveness container */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+
+    <div class="mb-6 text-center">
+        <h1 class="text-2xl font-bold text-gray-800 tracking-tight">Mac Magic Keyboard</h1>
+        <p class="text-gray-500 text-sm mt-1">Responsive Component &bull; Try pressing any key</p>
+    </div>
+
+    <!-- React Root -->
+    <div id="keyboard-root" class="w-full max-w-5xl"></div>
+
+    <!-- Component Source Code -->
+    <script type="text/babel">
+
+        // Helper components mapping span lengths to Tailwind col-span classes
+        const spanClasses = {
+            4: 'col-span-4',
+            5: 'col-span-5',
+            6: 'col-span-6',
+            7: 'col-span-7',
+            9: 'col-span-9',
+            20: 'col-[span_20_/_span_20]',
+        };
+
+        // Mapping corner types to specific border radii matching Mac keyboard aesthetics
+        const roundedClasses = {
+            tl: 'rounded-tl-[16px] rounded-tr-[5px] rounded-b-[5px]',
+            tr: 'rounded-tr-[16px] rounded-tl-[5px] rounded-b-[5px]',
+            bl: 'rounded-bl-[16px] rounded-tl-[5px] rounded-r-[5px]',
+            br: 'rounded-br-[16px] rounded-tr-[5px] rounded-l-[5px]',
+            none: 'rounded-[5px]'
+        };
+
+        // Base Key Component handling structure, shadows, hover / active states
+        const Key = ({ children, span = 4, corner = 'none', align = 'center', hClass = "h-10 sm:h-12 md:h-14" }) => {
+            const alignClasses = {
+                center: 'justify-center items-center pb-0',
+                left: 'justify-end items-start px-2 sm:px-3 pb-1.5 sm:pb-2',
+                right: 'justify-end items-end px-2 sm:px-3 pb-1.5 sm:pb-2',
+            };
+
+            return (
+                <div 
+                  className={`
+                    ${spanClasses[span]} ${roundedClasses[corner]} ${hClass}
+                    relative flex flex-col bg-white text-gray-800
+                    shadow-[0_1px_1px_rgba(0,0,0,0.1),_0_2px_4px_rgba(0,0,0,0.1)_,_inset_0_1px_0_rgba(255,255,255,1)]
+                    active:scale-[0.98] transition-transform duration-[50ms] cursor-default select-none
+                  `}
+                >
+                   <div className={`flex flex-col w-full h-full ${alignClasses[align]}`}>
+                      {children}
+                   </div>
+                </div>
+            );
+        };
+
+        // Specialized component for up/down arrows which are stacked in a single grid space
+        const ArrowStack = ({ span = 4, hClass = "h-10 sm:h-12 md:h-[56px]" }) => (
+            <div className={`col-span-${span} flex flex-col gap-[3px] ${hClass}`}>
+                <div className={`flex flex-1 justify-center items-center bg-white rounded-t-[5px] rounded-b-[2px] shadow-[0_1px_1px_rgba(0,0,0,0.1),_0_2px_4px_rgba(0,0,0,0.1),_inset_0_1px_0_rgba(255,255,255,1)] active:scale-[0.95] transition-transform duration-[50ms] cursor-default select-none`}>
+                   <span className="text-[10px] sm:text-[11px] text-gray-700">&#9650;</span>
+                </div>
+                <div className={`flex flex-1 justify-center items-center bg-white rounded-b-[5px] rounded-t-[2px] shadow-[0_1px_1px_rgba(0,0,0,0.1),_0_2px_4px_rgba(0,0,0,0.1),_inset_0_1px_0_rgba(255,255,255,1)] active:scale-[0.95] transition-transform duration-[50ms] cursor-default select-none`}>
+                   <span className="text-[10px] sm:text-[11px] text-gray-700">&#9660;</span>
+                </div>
+            </div>
+        );
+
+        // The Keyboard container orchestrates the layout using CSS Grid perfectly distributed 58 logical columns
+        const Keyboard = () => {
+            return (
+                <div className="w-full hide-scrollbar overflow-x-auto rounded-[20px] md:rounded-[32px] shadow-[0_10px_30px_rgba(0,0,0,0.15)] ring-1 ring-gray-900/5">
+                    {/* The metallic casing of the keyboard */}
+                    <div className="bg-[#e4e4e7] p-2.5 sm:p-4 md:p-5 rounded-[20px] md:rounded-[32px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),_inset_0_-2px_4px_rgba(0,0,0,0.1)] min-w-[700px]">
+                        <div className="grid grid-cols-[repeat(58,minmax(0,1fr))] gap-1.5 md:gap-2">
+                           
+                           {/* === ROW 1 === */}
+                           <Key span={5} align="left" corner="tl"><span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">esc</span></Key>
+                           <Key span={4}><i className="ti ti-sun-low text-gray-500 mb-0.5 sm:mb-1 text-[11px] sm:text-[13px] md:text-sm"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F1</span></Key>
+                           <Key span={4}><i className="ti ti-sun-high text-gray-500 mb-0.5 sm:mb-1 text-[11px] sm:text-[13px] md:text-sm"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F2</span></Key>
+                           <Key span={4}><i className="ti ti-layout-grid text-gray-500 mb-0.5 sm:mb-1 text-[11px] sm:text-[13px] md:text-sm"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F3</span></Key>
+                           <Key span={4}><i className="ti ti-search text-gray-500 mb-0.5 sm:mb-1 text-[11px] sm:text-[13px] md:text-sm"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F4</span></Key>
+                           <Key span={4}><i className="ti ti-microphone text-gray-500 mb-0.5 sm:mb-1 text-[11px] sm:text-[13px] md:text-sm"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F5</span></Key>
+                           <Key span={4}><i className="ti ti-moon text-gray-500 mb-0.5 sm:mb-1 text-[11px] sm:text-[13px] md:text-sm"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F6</span></Key>
+                           <Key span={4}><i className="ti ti-player-track-prev text-gray-500 mb-0.5 sm:mb-1 text-[11px] sm:text-[13px] md:text-sm font-bold"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F7</span></Key>
+                           <Key span={4}><i className="ti ti-player-play text-gray-500 mb-0.5 sm:mb-1 text-[11px] sm:text-[13px] md:text-sm font-bold"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F8</span></Key>
+                           <Key span={4}><i className="ti ti-player-track-next text-gray-500 mb-0.5 sm:mb-1 text-[11px] sm:text-[13px] md:text-sm font-bold"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F9</span></Key>
+                           <Key span={4}><i className="ti ti-volume-3 text-gray-500 mb-0.5 sm:mb-1 text-xs sm:text-[14px] md:text-base"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F10</span></Key>
+                           <Key span={4}><i className="ti ti-volume-2 text-gray-500 mb-0.5 sm:mb-1 text-xs sm:text-[14px] md:text-base"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F11</span></Key>
+                           <Key span={4}><i className="ti ti-volume text-gray-500 mb-0.5 sm:mb-1 text-xs sm:text-[14px] md:text-base"></i><span className="text-[8px] sm:text-[9px] text-gray-400 absolute bottom-1 font-medium">F12</span></Key>
+                           <Key span={5} corner="tr">
+                               <div className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] md:w-6 md:h-6 rounded-full border-[1.5px] sm:border-2 border-gray-300"></div>
+                           </Key>
+
+                           {/* === ROW 2 === */}
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">~</span> <span className="text-xs sm:text-sm md:text-base font-medium">{'`'}</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">!</span> <span className="text-xs sm:text-sm md:text-base font-medium">1</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">@</span> <span className="text-xs sm:text-sm md:text-base font-medium">2</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">#</span> <span className="text-xs sm:text-sm md:text-base font-medium">3</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">$</span> <span className="text-xs sm:text-sm md:text-base font-medium">4</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">%</span> <span className="text-xs sm:text-sm md:text-base font-medium">5</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">^</span> <span className="text-xs sm:text-sm md:text-base font-medium">6</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">&</span> <span className="text-xs sm:text-sm md:text-base font-medium">7</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">*</span> <span className="text-xs sm:text-sm md:text-base font-medium">8</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">(</span> <span className="text-xs sm:text-sm md:text-base font-medium">9</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">)</span> <span className="text-xs sm:text-sm md:text-base font-medium">0</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">_</span> <span className="text-xs sm:text-sm md:text-base font-medium">-</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">+</span> <span className="text-xs sm:text-sm md:text-base font-medium">=</span></Key>
+                           <Key span={6} align="right"><span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">delete</span></Key>
+
+                           {/* === ROW 3 === */}
+                           <Key span={6} align="left"><span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">tab</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">Q</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">W</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">E</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">R</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">T</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">Y</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">U</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">I</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">O</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">P</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">{'{'}</span> <span className="text-xs sm:text-sm md:text-base font-medium">{'['}</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">{'}'}</span> <span className="text-xs sm:text-sm md:text-base font-medium">{']'}</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">|</span> <span className="text-xs sm:text-sm md:text-base font-medium">{'\\'}</span></Key>
+
+                           {/* === ROW 4 === */}
+                           <Key span={7} align="left"><span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">caps lock</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">A</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">S</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">D</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">F</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">G</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">H</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">J</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">K</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">L</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">:</span> <span className="text-xs sm:text-sm md:text-base font-medium">;</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">"</span> <span className="text-xs sm:text-sm md:text-base font-medium">{"'"}</span></Key>
+                           <Key span={7} align="right"><span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">return</span></Key>
+
+                           {/* === ROW 5 === */}
+                           <Key span={9} align="left"><span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">shift</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">Z</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">X</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">C</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">V</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">B</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">N</span></Key>
+                           <Key span={4}><span className="text-xs sm:text-sm md:text-[15px] font-medium tracking-wide">M</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">{'<'}</span> <span className="text-xs sm:text-sm md:text-base font-medium">,</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">{'>'}</span> <span className="text-xs sm:text-sm md:text-base font-medium">.</span></Key>
+                           <Key span={4}><span className="text-gray-400 text-[10px] sm:text-xs text-center font-medium">?</span> <span className="text-xs sm:text-sm md:text-base font-medium">/</span></Key>
+                           <Key span={9} align="right"><span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">shift</span></Key>
+
+                           {/* === ROW 6 === */}
+                           <Key span={4} align="left" corner="bl">
+                              <i className="ti ti-world absolute top-1.5 sm:top-2 left-1.5 sm:left-2 text-gray-500 text-[11px] sm:text-sm font-normal"></i>
+                              <span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">fn</span>
+                           </Key>
+                           
+                           <Key span={4} align="left">
+                              <i className="ti ti-chevron-up absolute top-1.5 sm:top-2 right-1.5 sm:right-2 text-gray-600 text-xs sm:text-sm font-bold opacity-80"></i>
+                              <span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">control</span>
+                           </Key>
+                           
+                           <Key span={4} align="left">
+                              <span className="absolute top-1 sm:top-1.5 right-1.5 sm:right-2 text-gray-600 text-xs sm:text-[13px] font-medium opacity-90">⌥</span>
+                              <span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">option</span>
+                           </Key>
+                           
+                           <Key span={5} align="left">
+                              <span className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2 text-gray-600 text-xs sm:text-[13px] font-normal opacity-90">⌘</span>
+                              <span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">command</span>
+                           </Key>
+
+                           {/* Spacebar */}
+                           <Key span={20}></Key>
+                           
+                           <Key span={5} align="right">
+                              <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 text-gray-600 text-xs sm:text-[13px] font-normal opacity-90">⌘</span>
+                              <span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">command</span>
+                           </Key>
+                           
+                           <Key span={4} align="right">
+                              <span className="absolute top-1 sm:top-1.5 left-1.5 sm:left-2 text-gray-600 text-xs sm:text-[13px] font-medium opacity-90">⌥</span>
+                              <span className="text-[10px] sm:text-[11px] md:text-xs font-medium tracking-tight">option</span>
+                           </Key>
+                           
+                           <Key span={4} align="center">
+                              <span className="text-[10px] sm:text-[11px] text-gray-700 translate-y-[2px] sm:translate-y-1">&#9664;</span>
+                           </Key>
+                           
+                           {/* Arrow Stack */}
+                           <ArrowStack span={4} />
+                           
+                           <Key span={4} align="center" corner="br">
+                              <span className="text-[10px] sm:text-[11px] text-gray-700 translate-y-[2px] sm:translate-y-1">&#9654;</span>
+                           </Key>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('keyboard-root'));
+        root.render(<Keyboard />);
+    </script>
+</body>
+</html>
